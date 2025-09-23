@@ -43,6 +43,7 @@ with open(file_path, "r") as f:
         y = coords[1]
         c = 0
         k = 0
+        timestamp = float(coords[4]) if len(coords) > 4 else 0
 
         if(x != 'null'):
             x = int(x)
@@ -55,22 +56,25 @@ with open(file_path, "r") as f:
         if(k != 'null'):
             k = coords[3]   
 
-        coords = [x,y,c,k] 
-
+        coords = [x,y,c,k,timestamp] 
         mouse_movements.append(coords)
 
 # Infinite Loop
 if(loop == 'y'):
     while True:
-                # Replay the mouse movements
-        for x, y, c, k in mouse_movements:
-
+        last_time = 0
+        # Replay the mouse movements
+        for x, y, c, k, timestamp in mouse_movements:
+            # Wait for the correct timing
+            time_to_wait = timestamp - last_time
+            if time_to_wait > 0:
+                time.sleep(time_to_wait)
+            
             if(x != 'null'):
                 print(x,y)
                 pyautogui.moveTo(x, y)
 
             if(c == 1):
-           
                 pyautogui.click()
 
             if(k != 'null'):
@@ -80,4 +84,6 @@ if(loop == 'y'):
                     pyautogui.press(key.replace('Key.', ''))
                 else:
                     pyautogui.typewrite(key)
-        time.sleep(20)
+            
+            last_time = timestamp
+        time.sleep(2)
