@@ -19,7 +19,7 @@ for i, file in enumerate(preset_files):
 
 # Prompt the user to choose a file
 chosen_file = input("Enter the number of the preset file you want to use: ")
-loop = input("Loop? y/n")
+loop = input("Loop? (y/n): ")
 
 # Validate the user's input
 try:

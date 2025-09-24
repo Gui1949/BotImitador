@@ -18,10 +18,8 @@ def on_press(key):
     logging.info('null,null,null,{0},{1}'.format(key, current_time))
     
     if key == keyboard.Key.esc:
-        # Pare os listeners
         return False
 
-# Modificar a seção final para permitir parada adequada
 with mouse(on_click=on_click) as listenerM:
     with keyboard.Listener(on_press=on_press) as listenerKB:
         listenerKB.join()
