@@ -1,9 +1,20 @@
 import pyautogui
 import time
 import os
+import argparse
 
 # Parse the log file
 mouse_movements = []
+
+parser = argparse.ArgumentParser("bot")
+parser.add_argument("-c", "--chosen_file", help="Preset file number", type=str)
+parser.add_argument("-l", "--loop", help="Loop or not", type=str)
+parser.add_argument("-t", "--loop_timeout", help="Loop timeout in seconds", type=str)
+args = parser.parse_args()
+
+[chosen_file, loop, loop_timeout] = [args.chosen_file, args.loop, args.loop_timeout]
+
+print(args)
 
 # Prompt the user to choose a file from the presets folder
 preset_files = [f for f in os.listdir("presets") if f.endswith(".txt")]
@@ -17,11 +28,12 @@ for i, file in enumerate(preset_files):
     print(f"{i}. {file}")
 
 # Prompt the user to choose a file
-chosen_file = input("Enter the number of the preset file you want to use: ")
-loop = input("Loop? (y/n): ")
-loop_timeout = 0
+if not chosen_file and not loop and not loop_timeout:
+    chosen_file = input("Enter the number of the preset file you want to use: ")
+    loop = input("Loop? (y/n): ")
+    loop_timeout = 0
 
-if(loop == 'y'):
+if(loop == 'y' and not loop_timeout):
     loop_timeout = input("Enter loop timeout in seconds (0 for no timeout): ")
     try:
         loop_timeout = int(loop_timeout)
