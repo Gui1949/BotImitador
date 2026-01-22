@@ -5,7 +5,6 @@ import os
 # Parse the log file
 mouse_movements = []
 
-
 # Prompt the user to choose a file from the presets folder
 preset_files = [f for f in os.listdir("presets") if f.endswith(".txt")]
 if not preset_files:
@@ -20,8 +19,16 @@ for i, file in enumerate(preset_files):
 # Prompt the user to choose a file
 chosen_file = input("Enter the number of the preset file you want to use: ")
 loop = input("Loop? (y/n): ")
+loop_timeout = 0
 
-# Validate the user's input
+if(loop == 'y'):
+    loop_timeout = input("Enter loop timeout in seconds (0 for no timeout): ")
+    try:
+        loop_timeout = int(loop_timeout)
+    except ValueError:
+        print("Invalid timeout value.")
+        exit()
+
 try:
     chosen_file = int(chosen_file)
 except ValueError:
@@ -59,10 +66,9 @@ with open(file_path, "r") as f:
         coords = [x,y,c,k,timestamp] 
         mouse_movements.append(coords)
 
-# Infinite Loop
-if(loop == 'y'):
-    while True:
+def execute():
         last_time = 0
+        
         # Replay the mouse movements
         for x, y, c, k, timestamp in mouse_movements:
             # Wait for the correct timing
@@ -86,4 +92,14 @@ if(loop == 'y'):
                     pyautogui.typewrite(key)
             
             last_time = timestamp
-        time.sleep(2)
+
+# Infinite Loop
+if(loop == 'y'):
+    while True:
+       
+        execute()
+
+        time.sleep(loop_timeout)
+
+else:
+    execute()
