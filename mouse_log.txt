@@ -1,0 +1,13 @@
+null,null,null,Key.ctrl_l,1.1555101871490479
+null,null,null,Key.alt_gr,1.1583070755004883
+null,null,null,Key.ctrl_l,2.5685181617736816
+null,null,null,'\x03',2.6235649585723877
+null,null,null,Key.ctrl_l,4.896742582321167
+null,null,null,Key.alt_gr,4.896742582321167
+null,null,null,Key.esc,5.507173776626587
+null,null,null,'c',1.011587381362915
+null,null,null,Key.ctrl_l,1.0487120151519775
+null,null,null,'\x03',1.1620967388153076
+null,null,null,Key.ctrl_l,1.4775559902191162
+null,null,null,"'",1.8001174926757812
+null,null,null,Key.esc,2.317244529724121

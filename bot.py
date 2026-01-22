@@ -9,7 +9,7 @@ mouse_movements = []
 parser = argparse.ArgumentParser("bot")
 parser.add_argument("-c", "--chosen_file", help="Preset file number", type=str)
 parser.add_argument("-l", "--loop", help="Loop or not", type=str)
-parser.add_argument("-t", "--loop_timeout", help="Loop timeout in seconds", type=str)
+parser.add_argument("-t", "--loop_timeout", help="Loop timeout in seconds", type=int)
 args = parser.parse_args()
 
 [chosen_file, loop, loop_timeout] = [args.chosen_file, args.loop, args.loop_timeout]
