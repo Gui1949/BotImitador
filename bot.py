@@ -2,116 +2,122 @@ import pyautogui
 import time
 import os
 import argparse
+import sys
+from tkinter import *
+from tkinter import ttk
 
-# Parse the log file
-mouse_movements = []
-
+# --- Configuration and Arguments ---
 parser = argparse.ArgumentParser("bot")
 parser.add_argument("-c", "--chosen_file", help="Preset file number", type=str)
 parser.add_argument("-l", "--loop", help="Loop or not", type=str)
 parser.add_argument("-t", "--loop_timeout", help="Loop timeout in seconds", type=int)
 args = parser.parse_args()
 
-[chosen_file, loop, loop_timeout] = [args.chosen_file, args.loop, args.loop_timeout]
 
-print(args)
-
-# Prompt the user to choose a file from the presets folder
 preset_files = [f for f in os.listdir("presets") if f.endswith(".txt")]
 if not preset_files:
-    print("No .txt files found in the presets folder.")
+    print("No preset files found in 'presets' directory. Exiting.")
     exit()
 
-# Print a list of the preset files
-print("Select a preset file from the following list:")
-for i, file in enumerate(preset_files):
-    print(f"{i}. {file}")
+chosen_file = args.chosen_file
+loop_choice = args.loop
+loop_timeout = args.loop_timeout
 
-# Prompt the user to choose a file
-if not chosen_file and not loop and not loop_timeout:
-    chosen_file = input("Enter the number of the preset file you want to use: ")
-    loop = input("Loop? (y/n): ")
-    loop_timeout = 0
+# Terminal input if arguments not provided
+if not chosen_file:
+    for i, file in enumerate(preset_files):
+        print(f"{i}. {file}")
+    chosen_file = input("Preset Number: ")
+    loop_choice = input("Loop? (y/n): ")
+    loop_timeout = int(input("Timeout (seconds): ") if loop_choice == 'y' else 0)
 
-if(loop == 'y' and not loop_timeout):
-    loop_timeout = input("Enter loop timeout in seconds (0 for no timeout): ")
-    try:
-        loop_timeout = int(loop_timeout)
-    except ValueError:
-        print("Invalid timeout value.")
-        exit()
+# Loading preset file
+file_index = int(chosen_file)
+selected_filename = preset_files[file_index]
+file_path = os.path.join("presets", selected_filename)
 
-try:
-    chosen_file = int(chosen_file)
-except ValueError:
-    print("Invalid input.")
-    exit()
-
-# Check if the user's choice is valid
-if chosen_file < 0 or chosen_file >= len(preset_files):
-    print("Invalid file choice.")
-    exit()
-
-# Construct file path
-file_path = os.path.join("presets", preset_files[chosen_file])
-
+mouse_movements = []
 with open(file_path, "r") as f:
     for line in f.readlines():
         coords = line.strip().split(",")
-        x = coords[0]
-        y = coords[1]
-        c = 0
-        k = 0
-        timestamp = float(coords[4]) if len(coords) > 4 else 0
+        if len(coords) < 2: continue
+        x = int(coords[0]) if coords[0] != 'null' else 'null'
+        y = int(coords[1]) if coords[1] != 'null' else 'null'
+        c = 1 if coords[2] != 'null' else 0
+        k = coords[3] if coords[3] != 'null' else 'null'
+        ts = float(coords[4]) if len(coords) > 4 else 0
+        mouse_movements.append([x, y, c, k, ts])
 
-        if(x != 'null'):
-            x = int(x)
-            y = int(y)
-
-        if(coords[2] != 'null'):
-            print(coords[2])
-            c = 1
-
-        if(k != 'null'):
-            k = coords[3]   
-
-        coords = [x,y,c,k,timestamp] 
-        mouse_movements.append(coords)
-
-def execute():
-        last_time = 0
+# --- Execution Logic ---
+def run_bot():
+    status_var.set("Status: Executing movements...")
+    root.update() # Force UI update
+    
+    last_time = 0
+    for x, y, c, k, timestamp in mouse_movements:
+        time_to_wait = timestamp - last_time
+        if time_to_wait > 0:
+            time.sleep(time_to_wait)
         
-        # Replay the mouse movements
-        for x, y, c, k, timestamp in mouse_movements:
-            # Wait for the correct timing
-            time_to_wait = timestamp - last_time
-            if time_to_wait > 0:
-                time.sleep(time_to_wait)
-            
-            if(x != 'null'):
-                print(x,y)
-                pyautogui.moveTo(x, y)
+        if x != 'null':
+            pyautogui.moveTo(x, y)
+        if c == 1:
+            pyautogui.click()
+        if k != 'null':
+            key = k.replace("'", "")
+            if 'Key.' in key:
+                pyautogui.press(key.replace('Key.', ''))
+            else:
+                pyautogui.typewrite(key)
+        last_time = timestamp
+    
+    if loop_choice == 'y':
+        start_countdown(loop_timeout)
+    else:
+        status_var.set("Status: Finished.")
 
-            if(c == 1):
-                pyautogui.click()
+def start_countdown(seconds):
+    if seconds > 0:
+        status_var.set(f"Status: Waiting for next loop...")
+        timer_var.set(f"Next execution in: {seconds}s")
+        # Schedule the update for the next second
+        root.after(1000, lambda: start_countdown(seconds - 1))
 
-            if(k != 'null'):
-                key = k.replace("'","")
+        if seconds == 60:
+            root.focus_force()
+            root.bell()
 
-                if(key.find('.')):
-                    pyautogui.press(key.replace('Key.', ''))
-                else:
-                    pyautogui.typewrite(key)
-            
-            last_time = timestamp
+    else:
+        timer_var.set("Next execution in: 0s")
+        run_bot()
 
-# Infinite Loop
-if(loop == 'y'):
-    while True:
-       
-        execute()
+# --- Window Setup ---
 
-        time.sleep(loop_timeout)
+root = Tk()
+root.title("Bot Executor")
+root.geometry("400x250")
 
-else:
-    execute()
+status_var = StringVar(value="Status: Starting...")
+timer_var = StringVar(value="Next execution in: --")
+
+frm = ttk.Frame(root, padding=20)
+frm.pack(expand=True, fill="both")
+
+# Preset Info
+ttk.Label(frm, text=f"File: {selected_filename}", font=("Helvetica", 10, "bold")).pack(pady=5)
+ttk.Label(frm, text=f"Loop: {'Yes' if loop_choice == 'y' else 'No'}").pack()
+ttk.Label(frm, text=f"Timeout: {loop_timeout}s").pack()
+
+ttk.Separator(frm, orient=HORIZONTAL).pack(fill=X, pady=10)
+
+# Dynamic Status and Timer
+ttk.Label(frm, textvariable=status_var, foreground="blue").pack()
+ttk.Label(frm, textvariable=timer_var, font=("Helvetica", 12, "bold")).pack(pady=10)
+
+# Exit Button
+ttk.Button(frm, text="Exit / Stop", command=root.destroy).pack(side=BOTTOM)
+
+# Start the bot after the mainloop starts
+root.after(1000, run_bot)
+
+root.mainloop()
