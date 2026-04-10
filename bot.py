@@ -11,6 +11,7 @@ parser = argparse.ArgumentParser("bot")
 parser.add_argument("-c", "--chosen_file", help="Preset file number", type=str)
 parser.add_argument("-l", "--loop", help="Loop or not", type=str)
 parser.add_argument("-t", "--loop_timeout", help="Loop timeout in seconds", type=int)
+parser.add_argument("-d", "--delay", help="Delay between every command", type=int)
 args = parser.parse_args()
 
 
@@ -22,6 +23,7 @@ if not preset_files:
 chosen_file = args.chosen_file
 loop_choice = args.loop
 loop_timeout = args.loop_timeout
+delay = args.delay
 
 # Terminal input if arguments not provided
 if not chosen_file:
@@ -50,12 +52,10 @@ with open(file_path, "r") as f:
 
 # --- Execution Logic ---
 def run_bot():
-    status_var.set("Status: Executing movements...")
-    root.update() # Force UI update
-    
+
     last_time = 0
     for x, y, c, k, timestamp in mouse_movements:
-        time_to_wait = timestamp - last_time
+        time_to_wait = timestamp - last_time + (delay if delay else 0)
         if time_to_wait > 0:
             time.sleep(time_to_wait)
         
@@ -75,6 +75,7 @@ def run_bot():
         start_countdown(loop_timeout)
     else:
         status_var.set("Status: Finished.")
+        root.after(1000, root.destroy)
 
 def start_countdown(seconds):
     if seconds > 0:
@@ -83,7 +84,7 @@ def start_countdown(seconds):
         # Schedule the update for the next second
         root.after(1000, lambda: start_countdown(seconds - 1))
 
-        if seconds == 60:
+        if seconds == 60 or seconds == 30 or seconds == 10 or seconds <= 5:
             root.focus_force()
             root.bell()
 
